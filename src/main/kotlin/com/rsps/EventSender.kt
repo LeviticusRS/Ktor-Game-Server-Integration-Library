@@ -28,8 +28,8 @@ class EventSender(
 ) {
     private val lock = Any()
     private val pendingEvents = ArrayDeque<Event>()
-    private val sendIntervalMillis = 3_500L
-    private val batchSize = 500
+    private val sendIntervalMillis = 2_000L
+    private val batchSize = 20
 
     init {
         require(serverUrl.isNotEmpty()) { "Server Url must not be empty" }
@@ -73,9 +73,7 @@ class EventSender(
             pendingEvents.removeAll(eventsToSend)
         }
 
-        for (event in eventsToSend) {
-            sendEvent(event)
-        }
+        sendEvent(eventsToSend)
 
     }
 
@@ -85,7 +83,7 @@ class EventSender(
      * @param event The event to be sent.
      * @throws SendEventException If an error occurs while sending the event.
      */
-    private suspend fun sendEvent(event: Event) {
+    private suspend fun sendEvent(event: List<Event>) {
         scope.launch {
             try {
                 val response = client.post("$serverUrl/event") {
@@ -98,7 +96,8 @@ class EventSender(
                     throw SendEventException("Failed to send event: ${response.status} $event")
                 }
             } catch (e: Exception) {
-                pendingEvents.add(event)
+                //println("Failed to send event: ${e.message}")
+                pendingEvents.addAll(event)
             }
         }
     }
@@ -129,6 +128,18 @@ class EventSender(
     fun queueEvent(event: Event) {
         synchronized(lock) {
             pendingEvents.add(event)
+        }
+    }
+
+    fun loadTest() {
+        val numberOfRequests = 10_000
+        val events = mutableListOf<Event>()
+        for (i in 1..numberOfRequests) {
+            val event = PublicMessageEvent("Loading $i of $numberOfRequests events", "Leviticus")
+            events.add(event)
+        }
+        for (event in events) {
+            queueEvent(event)
         }
     }
 
