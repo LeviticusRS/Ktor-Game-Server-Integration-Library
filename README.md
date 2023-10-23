@@ -1,4 +1,4 @@
-# EventSender
+# RSPS Panel API Bridge
 
 `RSPS Panel API Bridge` is a Kotlin library for sending events to a server using HTTP POST requests. It is designed to be used in a Java game server environment but can be adapted for other use cases as well.
 
