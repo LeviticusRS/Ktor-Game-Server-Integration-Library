@@ -6,6 +6,7 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.*
@@ -61,7 +62,7 @@ class EventSender(
      * during processing.
      */
     private suspend fun sendBatchOfEvents() {
-        val eventsToSend: List<Event>
+        val eventsToSend: Array<Event>
 
         synchronized(lock) {
             if (pendingEvents.isEmpty()) {
@@ -69,8 +70,8 @@ class EventSender(
             }
 
             val eventsToSendCount = minOf(batchSize, pendingEvents.size)
-            eventsToSend = pendingEvents.take(eventsToSendCount).toList()
-            pendingEvents.removeAll(eventsToSend)
+            eventsToSend = pendingEvents.take(eventsToSendCount).toTypedArray()
+            pendingEvents.removeAll(eventsToSend.toSet())
         }
 
         sendEvent(eventsToSend)
@@ -83,7 +84,7 @@ class EventSender(
      * @param event The event to be sent.
      * @throws SendEventException If an error occurs while sending the event.
      */
-    private suspend fun sendEvent(event: List<Event>) {
+    private suspend fun sendEvent(event: Array<Event>) {
         scope.launch {
             try {
                 val response = client.post("$serverUrl/event") {
@@ -96,7 +97,7 @@ class EventSender(
                     throw SendEventException("Failed to send event: ${response.status} $event")
                 }
             } catch (e: Exception) {
-                //println("Failed to send event: ${e.message}")
+                println("Failed to send event: ${e.message}")
                 pendingEvents.addAll(event)
             }
         }
@@ -132,7 +133,7 @@ class EventSender(
     }
 
     fun loadTest() {
-        val numberOfRequests = 10_000
+        val numberOfRequests = 100
         val events = mutableListOf<Event>()
         for (i in 1..numberOfRequests) {
             val event = PublicMessageEvent("Loading $i of $numberOfRequests events", "Leviticus")
