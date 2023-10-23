@@ -26,6 +26,7 @@ class EventSender(
     private val apiKey: String,
     private val scope: CoroutineScope,
 ) {
+    private val lock = Any()
     private val pendingEvents = ArrayDeque<Event>()
     private val sendIntervalMillis = 3_500L
     private val batchSize = 500
@@ -60,14 +61,22 @@ class EventSender(
      * during processing.
      */
     private suspend fun sendBatchOfEvents() {
-        if (pendingEvents.isEmpty()) {
-            return
+        val eventsToSend: List<Event>
+
+        synchronized(lock) {
+            if (pendingEvents.isEmpty()) {
+                return
+            }
+
+            val eventsToSendCount = minOf(batchSize, pendingEvents.size)
+            eventsToSend = pendingEvents.take(eventsToSendCount).toList()
+            pendingEvents.removeAll(eventsToSend)
         }
-        val eventsToSendCount = minOf(batchSize, pendingEvents.size)
-        repeat(eventsToSendCount) {
-            val event = pendingEvents.removeFirst()
+
+        for (event in eventsToSend) {
             sendEvent(event)
         }
+
     }
 
     /**
@@ -93,8 +102,6 @@ class EventSender(
             }
         }
     }
-
-    private val lock = Any()
 
     /**
      * Adds an event to the queue for asynchronous processing.
