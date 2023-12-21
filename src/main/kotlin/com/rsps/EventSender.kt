@@ -86,6 +86,7 @@ class EventSender(
      */
     private suspend fun sendEvent(event: Array<Event>) {
         scope.launch {
+            var failed = false
             try {
                 val response = client.post("$serverUrl/event") {
                     contentType(ContentType.Application.Json)
@@ -94,11 +95,15 @@ class EventSender(
                 }
 
                 if (response.status != HttpStatusCode.OK) {
-                    throw SendEventException("Failed to send event: ${response.status} $event")
+                    failed = true
                 }
             } catch (e: Exception) {
-                println("Failed to send event: ${e.message}")
-                pendingEvents.addAll(event)
+                failed = true
+            }
+            if (failed) {
+                synchronized(lock) {
+                    pendingEvents.addAll(event)
+                }
             }
         }
     }
