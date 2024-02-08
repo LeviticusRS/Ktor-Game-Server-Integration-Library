@@ -44,7 +44,7 @@ class EventSender(
     init {
         require(serverUrl.isNotEmpty()) { "Server Url must not be empty" }
         require(apiKey.isNotEmpty()) { "API key must not be empty" }
-        startSendingJob()
+        //startSendingJob()
     }
 
     /**
@@ -210,6 +210,9 @@ class EventSender(
      * ```
      */
     fun queueEvent(event: Event) {
+        if (true) {
+            return
+        }
         synchronized(lock) {
             pendingEvents.add(event)
         }
