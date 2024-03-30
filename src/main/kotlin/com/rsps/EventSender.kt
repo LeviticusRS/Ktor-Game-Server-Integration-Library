@@ -1,7 +1,10 @@
 package com.rsps
 
 import com.rsps.event.*
+import com.rsps.models.OrderItem
+import com.rsps.models.OrderServerResponse
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -10,6 +13,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.*
+import java.util.concurrent.CompletableFuture
 
 /**
  * Class responsible for sending events to a server using HTTP POST requests.
@@ -106,6 +110,29 @@ class EventSender(
                 }
             }
         }
+    }
+
+    fun attemptDonationClaim(username: String): List<OrderServerResponse> {
+        val deferred = CompletableFuture<List<OrderServerResponse>>()
+        scope.launch {
+            try {
+                val response = client.post("$serverUrl/order/claim") {
+                    contentType(ContentType.Application.Json)
+                    header(HttpHeaders.Authorization, "Bearer $apiKey")
+                    setBody(username)
+                }
+
+                val orderItems: List<OrderServerResponse> = if (response.status == HttpStatusCode.OK) {
+                    response.body<List<OrderServerResponse>>()
+                } else {
+                    emptyList()
+                }
+                deferred.complete(orderItems)
+            } catch (e: Exception) {
+                deferred.completeExceptionally(e)
+            }
+        }
+        return deferred.join()
     }
 
     /**
