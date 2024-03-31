@@ -1,15 +1,17 @@
 package com.rsps
 
-import com.rsps.event.*
-import com.rsps.models.OrderItem
+import com.rsps.event.Event
+import com.rsps.event.EventSenderInitializationException
+import com.rsps.event.PublicMessageEvent
+import com.rsps.event.SendEventException
 import com.rsps.models.OrderServerResponse
+import com.rsps.models.VoteServerResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.*
@@ -124,6 +126,29 @@ class EventSender(
 
                 val orderItems: List<OrderServerResponse> = if (response.status == HttpStatusCode.OK) {
                     response.body<List<OrderServerResponse>>()
+                } else {
+                    emptyList()
+                }
+                deferred.complete(orderItems)
+            } catch (e: Exception) {
+                deferred.completeExceptionally(e)
+            }
+        }
+        return deferred.join()
+    }
+
+    fun attemptVoteClaim(username: String): List<VoteServerResponse> {
+        val deferred = CompletableFuture<List<VoteServerResponse>>()
+        scope.launch {
+            try {
+                val response = client.post("$serverUrl/vote/claim") {
+                    contentType(ContentType.Application.Json)
+                    header(HttpHeaders.Authorization, "Bearer $apiKey")
+                    setBody(username)
+                }
+
+                val orderItems: List<VoteServerResponse> = if (response.status == HttpStatusCode.OK) {
+                    response.body<List<VoteServerResponse>>()
                 } else {
                     emptyList()
                 }
