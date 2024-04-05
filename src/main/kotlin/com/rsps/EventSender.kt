@@ -1,10 +1,13 @@
 package com.rsps
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.rsps.event.Event
 import com.rsps.event.EventSenderInitializationException
 import com.rsps.event.PublicMessageEvent
 import com.rsps.event.SendEventException
 import com.rsps.models.OrderServerResponse
+import com.rsps.models.VoteServerLatestResponse
 import com.rsps.models.VoteServerResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -160,6 +163,29 @@ class EventSender(
         return deferred.join()
     }
 
+    fun getLastVoteTimes(username: String): List<VoteServerLatestResponse> {
+        val deferred = CompletableFuture<List<VoteServerLatestResponse>>()
+        scope.launch {
+            try {
+                val response = client.post("$serverUrl/vote/last/server") {
+                    contentType(ContentType.Application.Json)
+                    header(HttpHeaders.Authorization, "Bearer $apiKey")
+                    setBody(username)
+                }
+
+                val orderItems: List<VoteServerLatestResponse> = if (response.status == HttpStatusCode.OK) {
+                    response.body<List<VoteServerLatestResponse>>()
+                } else {
+                    emptyList()
+                }
+                deferred.complete(orderItems)
+            } catch (e: Exception) {
+                deferred.completeExceptionally(e)
+            }
+        }
+        return deferred.join()
+    }
+
     /**
      * Adds an event to the queue for asynchronous processing.
      *
@@ -253,7 +279,10 @@ class EventSender(
                     }
 
                     install(ContentNegotiation) {
-                        jackson()
+                        jackson {
+                            registerModule(JavaTimeModule())
+                            enable(SerializationFeature.INDENT_OUTPUT)
+                        }
                     }
                 }
                 val scope = CoroutineScope(Dispatchers.IO)

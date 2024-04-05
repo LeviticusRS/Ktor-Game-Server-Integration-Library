@@ -23,6 +23,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation-jvm:${versions["ktor.version"]}")
     implementation("io.ktor:ktor-serialization-jvm:${versions["ktor.version"]}")
     implementation("io.ktor:ktor-serialization-jackson-jvm:${versions["ktor.version"]}")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.1")
 }
 
