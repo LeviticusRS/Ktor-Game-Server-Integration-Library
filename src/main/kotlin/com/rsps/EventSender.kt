@@ -1,7 +1,5 @@
 package com.rsps
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.rsps.event.Event
 import com.rsps.event.EventSenderInitializationException
 import com.rsps.event.PublicMessageEvent
@@ -281,12 +279,12 @@ class EventSender(
                         requestTimeoutMillis = 10_000
                     }
 
-                    install(ContentNegotiation) {
+                    /*install(ContentNegotiation) {
                         jackson {
                             registerModule(JavaTimeModule())
                             enable(SerializationFeature.INDENT_OUTPUT)
                         }
-                    }
+                    }*/
                 }
                 val scope = CoroutineScope(Dispatchers.IO)
                 return EventSender(client, serverUrl, apiKey, scope)
