@@ -264,8 +264,8 @@ class EventSender(
             try {
                 val client = HttpClient(CIO) {
                     engine {
+                        dispatcher = Dispatchers.IO.limitedParallelism(Runtime.getRuntime().availableProcessors())
                         maxConnectionsCount = 1000
-                        threadsCount = Runtime.getRuntime().availableProcessors()
                         endpoint {
                             maxConnectionsPerRoute = 1000
                             pipelineMaxSize = 20

@@ -10,7 +10,7 @@ repositories {
 }
 
 val versions = mapOf(
-    "ktor.version" to "2.3.4"
+    "ktor.version" to "3.0.3"
 )
 
 dependencies {
@@ -18,7 +18,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core-jvm:${versions["ktor.version"]}")
     implementation("io.ktor:ktor-client-logging-jvm:${versions["ktor.version"]}")
     implementation("io.ktor:ktor-client-cio-jvm:${versions["ktor.version"]}")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1")
     implementation("io.ktor:ktor-http-jvm:${versions["ktor.version"]}")
     implementation("io.ktor:ktor-client-content-negotiation-jvm:${versions["ktor.version"]}")
     implementation("io.ktor:ktor-serialization-jvm:${versions["ktor.version"]}")
