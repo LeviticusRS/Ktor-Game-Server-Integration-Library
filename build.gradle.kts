@@ -23,8 +23,13 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation-jvm:${versions["ktor.version"]}")
     implementation("io.ktor:ktor-serialization-jvm:${versions["ktor.version"]}")
     implementation("io.ktor:ktor-serialization-jackson-jvm:${versions["ktor.version"]}")
+    implementation("io.ktor:ktor-client-okhttp:${versions["ktor.version"]}")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.1")
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.0.2"))
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:auth-kt")
+    implementation("io.github.jan-tennert.supabase:realtime-kt")
 }
 
 
